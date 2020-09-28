@@ -1,9 +1,14 @@
 const { request } = require("express");
 const express = require("express");
 const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
+const cors = require("cors");
+
+const saltRounds = 10;
 
 const app = express();
 app.use(bodyParser.json());
+app.use(cors());
 
 const database = {
   users: [
@@ -12,7 +17,7 @@ const database = {
       name: "Jhon",
       email: "jhon@gmail.com",
       password: "cookies",
-      entries: 0,
+      entries: 1,
       joined: new Date(),
     },
     {
@@ -24,6 +29,13 @@ const database = {
       joined: new Date(),
     },
   ],
+  login: [
+    {
+      id: "987",
+      hash: "",
+      email: "john@gmail.com",
+    },
+  ],
 };
 
 app.get("/", (req, res) => {
@@ -31,11 +43,16 @@ app.get("/", (req, res) => {
 });
 
 app.post("/signin", (req, res) => {
+  //   // Load hash from your password DB.
+  //   bcrypt.compare(myPlaintextPassword, hash, function (err, result) {
+  //     // result == true
+  //   });
+
   if (
     req.body.email === database.users[0].email &&
     req.body.password === database.users[0].password
   ) {
-    res.json("success");
+    res.json(database.users[0]);
   } else {
     res.status(400).json("error logging in");
   }
@@ -44,11 +61,14 @@ app.post("/signin", (req, res) => {
 app.post("/register", (req, res) => {
   const { email, name, password } = req.body;
 
+  bcrypt.hash(password, saltRounds, function (err, hash) {
+    console.log(hash);
+  });
+
   database.users.push({
     id: "125",
     name: name,
     email: email,
-    password: password,
     entries: 0,
     joined: new Date(),
   });
@@ -87,6 +107,20 @@ app.put("/image", (req, res) => {
     res.status(400).json("not found");
   }
 });
+
+// const bcrypt = require('bcrypt');
+// const saltRounds = 10;
+// const myPlaintextPassword = 's0/\/\P4$$w0rD';
+// const someOtherPlaintextPassword = 'not_bacon';
+
+// bcrypt.hash(myPlaintextPassword, saltRounds, function(err, hash) {
+//     // Store hash in your password DB.
+// });
+
+// // Load hash from your password DB.
+// bcrypt.compare(myPlaintextPassword, hash, function(err, result) {
+//     // result == true
+// });
 
 app.listen(3000, () => {
   console.log("app is running on port 3000");
